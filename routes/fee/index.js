@@ -1,7 +1,7 @@
 const eah = require('express-async-handler')
 const mysql = require('mysql2')
 
-const { fee_auth, fee_url } = require('../../secrets')
+const { fee_auth } = require('../../secrets')
 const { fee: config } = require('../../secrets/db/config')
 const { fee: sql } = require('../../secrets/db/sql')
 
@@ -15,19 +15,19 @@ module.exports = {
             res.sendStatus(401)
     },
     students: eah(async (req, res) => {
-        const result = await pool.execute(sql.students)
+        const [result] = await pool.execute(sql.students)
         res.json(result)
     }),
-    pay: (req, res) => {
+    pay: eah(async (req, res) => {
         const id = req.body.id
-        pool.execute(sql.pay, [id])
-            .then(result => {
-                res.json({ id: req.body.id, success: (result.changedRows === 1) })
-            })
-            .catch(err => {
-                res.json({ success: false })
-            })
-    },
+        const [student] = await pool.execute(sql.getStudent, [id])
+        if (student.length > 0){
+            const [result] = await pool.execute(sql.pay, [id])
+            res.json({ id, success: (result.changedRows === 1) })
+        }
+        else 
+            res.json({ id, success: false, err: 'Student does not exist' })
+    }),
     check_auth: (req, res) => {
         if (req.session.profiles && req.session.profiles.fee)
             res.json({ login: true })
@@ -48,6 +48,6 @@ module.exports = {
     },
     logout: (req, res) => {
         req.session.profiles.fee = null
-        res.redirect(fee_url)
+        res.sendStatus(200)
     }
 }

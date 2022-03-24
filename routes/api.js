@@ -13,7 +13,7 @@ router.get('/pastexam/download', pastexamRouter.check, pastexamRouter.downloadEx
 router.post('/pastexam/upload', pastexamRouter.check, pastexamRouter.uploadExam)
 router.get('/pastexam/check', pastexamRouter.profile)
 router.get('/pastexam/logout', pastexamRouter.logout)
-// NYCU Oauth Login
+// NYCU Oauth Login for pastexam
 const pastexamOauth = oauth(oauthConfig.pastexam.client_id, oauthConfig.pastexam.client_secret, oauthConfig.pastexam.redirect_uri,
     (req, res, next, profile) => {
         if (!req.session.profiles)
@@ -31,5 +31,19 @@ router.post('/pay', feeRouter.check, feeRouter.pay)
 router.post('/fee_check', feeRouter.check_auth)
 router.post('/fee_auth', feeRouter.login)
 router.post('/fee_logout', feeRouter.logout)
+
+// NYCU Oauth Login for professors
+const professorsOauth = oauth(oauthConfig.professors.client_id, oauthConfig.professors.client_secret, oauthConfig.professors.redirect_uri,
+    (req, res, next, profile) => {
+        if (!req.session.profiles)
+            req.session.profiles = {}
+        req.session.profiles.professors = profile
+        res.redirect('https://professors.nctucsunion.me/')
+    })
+router.get('/professors/login', professorsOauth.login)
+router.get('/professors/auth', professorsOauth.auth)
+
+const professorsRouter = require('./professors')
+router.use('/professors', professorsRouter.check, professorsRouter.statics)
 
 module.exports = router

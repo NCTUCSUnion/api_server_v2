@@ -25,7 +25,7 @@ module.exports = (client_id, client_secret, redirect_uri, profile_callback) => (
             .then(res => res.data)
             .then(
                 json => (
-                    axios.get('https://id.nycu.edu.tw/api/profile/', { headers: { Authorization: `Bearer ${json.access_token}` } })
+                    axios.get('https://id.nycu.edu.tw/api/profile/', { headers: { Authorization: `Bearer ${json.access_token}` }, httpsAgent: agent })
                 )
             )
             .then(res => res.data)
